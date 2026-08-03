@@ -44,6 +44,15 @@ interface VideoDetail {
   publishedAt: string
   tags: string[]
   privacyStatus: string
+  durationSeconds: number
+}
+
+// ISO 8601 duration (e.g. "PT1M30S") -> seconds
+function parseIsoDuration(iso: string): number {
+  const match = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/)
+  if (!match) return 0
+  const [, h, m, s] = match
+  return (Number(h) || 0) * 3600 + (Number(m) || 0) * 60 + (Number(s) || 0)
 }
 
 async function fetchUploadsPlaylistId(channelId: string, apiKey: string): Promise<string> {
@@ -95,7 +104,7 @@ async function fetchVideoDetails(videoIds: string[], apiKey: string): Promise<Vi
 
   for (let i = 0; i < videoIds.length; i += 50) {
     const batch = videoIds.slice(i, i + 50)
-    const url = `${BASE_URL}/videos?part=snippet,status&id=${batch.join(',')}&key=${apiKey}`
+    const url = `${BASE_URL}/videos?part=snippet,status,contentDetails&id=${batch.join(',')}&key=${apiKey}`
     const res = await fetch(url)
     if (!res.ok) throw new Error(`videos.list failed: ${res.status}`)
     const data = await res.json()
@@ -108,6 +117,7 @@ async function fetchVideoDetails(videoIds: string[], apiKey: string): Promise<Vi
         publishedAt: item.snippet?.publishedAt ?? '',
         tags: item.snippet?.tags ?? [],
         privacyStatus: item.status?.privacyStatus ?? 'private',
+        durationSeconds: parseIsoDuration(item.contentDetails?.duration ?? ''),
       })
     }
   }
@@ -244,6 +254,8 @@ export function youtubeLoader(): Loader {
           if (!detail) continue
           // Skip unlisted/private/scheduled videos — only published-public episodes
           if (detail.privacyStatus !== 'public') continue
+          // Skip Shorts (ponytail: duration <=50s heuristic, YouTube has no explicit shorts flag in the API; tighten/loosen if misclassifying)
+          if (detail.durationSeconds > 0 && detail.durationSeconds <= 50) continue
 
           const parsed = parseTitleParts(detail.title)
           // Use the episode number from the title; fall back to publish-date rank
