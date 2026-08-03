@@ -1,7 +1,7 @@
 ---
 import DefaultLayout from '@layouts/DefaultLayout.astro'
 import PageHeader from '@components/PageHeader.astro'
-import { Form, Input, Button, Textarea, Fieldset, Heading, Link, Radio } from 'accessible-astro-components'
+import { Form, Input, Button, Textarea, Fieldset, Heading, Link, Radio, Checkbox } from 'accessible-astro-components'
 import { Icon } from 'astro-icon/components'
 ---
 
@@ -28,12 +28,15 @@ import { Icon } from 'astro-icon/components'
           detect it. This hidden twin registers the "contact" form + its fields with Netlify.
         */
         }
+        <!-- Netlify-required plain HTML form for non-JS submissions -->
         <form name="contact" data-netlify="true" hidden aria-hidden="true">
+          <input type="hidden" name="form-name" value="contact" />
           <input type="text" name="fullname" />
           <input type="email" name="email" />
           <input type="tel" name="phone" />
           <textarea name="message"></textarea>
           <input type="radio" name="identity" value="Patient" />
+          <input type="checkbox" name="consent" />
         </form>
 
         <Form name="contact" class="contact-form" action="/thank-you" method="post" data-netlify="true">
@@ -61,6 +64,15 @@ import { Icon } from 'astro-icon/components'
             <Radio name="identity" value="Organisation" label="Patient organisation or Changemaker" />
             <Radio name="identity" value="Advocate" label="Advocate in the rare disease space" />
           </Fieldset>
+
+          <Checkbox
+            name="consent"
+            required
+            label="I consent to this information being processed as described in the Privacy Policy."
+          />
+          <p class="text-sm">
+            Read our <Link href="/privacy-policy">Privacy Policy</Link> and <Link href="/medical-disclaimer">medical disclaimer</Link>.
+          </p>
 
           <Button htmlType="submit" type="primary">Send Message</Button>
         </Form>

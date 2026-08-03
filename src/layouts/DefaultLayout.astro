@@ -5,6 +5,7 @@ import themeConfig from '@theme-config'
 import { SEO } from 'astro-seo'
 import Header from '@components/Header.astro'
 import Footer from '@components/Footer.astro'
+import CookieBanner from '@components/CookieBanner.astro'
 import { ClientRouter } from 'astro:transitions'
 import type { ImageMetadata } from 'astro'
 
@@ -149,6 +150,7 @@ const organizationSchema = {
       <slot />
     </main>
     <Footer />
+    <CookieBanner />
     <script>
       if (history.scrollRestoration) {
         history.scrollRestoration = 'manual'

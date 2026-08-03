@@ -6,23 +6,23 @@ interface Props {
 
 const { url, title } = Astro.props
 
-function getYoutubeEmbedUrl(url: string): string | null {
+function getVideoId(url: string): string | null {
   const match = url.match(/(?:v=|youtu\.be\/)([^&\n?#]+)/)
-  return match ? `https://www.youtube.com/embed/${match[1]}?rel=0` : null
+  return match ? match[1] : null
 }
 
-const embedUrl = getYoutubeEmbedUrl(url)
+const videoId = getVideoId(url)
+const thumbnail = videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : null
+const embedUrl = videoId ? `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0` : null
 ---
 
 {
-  embedUrl ? (
-    <div class="video-wrapper">
-      <iframe
-        src={embedUrl}
-        title={title}
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        allowfullscreen
-      />
+  embedUrl && thumbnail ? (
+    <div class="video-wrapper youtube-facade" data-embed-url={embedUrl} data-title={title}>
+      <button type="button" class="facade-play" aria-label={`Play: ${title}`}>
+        <img src={thumbnail} alt="" loading="lazy" />
+        <span class="play-icon" aria-hidden="true">▶</span>
+      </button>
     </div>
   ) : (
     <p class="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-700">
@@ -33,6 +33,47 @@ const embedUrl = getYoutubeEmbedUrl(url)
     </p>
   )
 }
+
+<script>
+  import { getConsent, CONSENT_EVENT } from '@utils/cookieConsent'
+
+  function loadVideo(wrapper: HTMLElement) {
+    const embedUrl = wrapper.dataset.embedUrl
+    const title = wrapper.dataset.title
+    if (!embedUrl) return
+    wrapper.innerHTML = ''
+    const iframe = document.createElement('iframe')
+    iframe.src = embedUrl
+    iframe.title = `YouTube video: ${title}`
+    iframe.allow =
+      'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'
+    iframe.allowFullscreen = true
+    wrapper.appendChild(iframe)
+  }
+
+  function setupFacade(wrapper: HTMLElement) {
+    if (wrapper.dataset.init === 'true') return
+    wrapper.dataset.init = 'true'
+
+    if (getConsent() === 'accepted') {
+      loadVideo(wrapper)
+      return
+    }
+
+    wrapper.querySelector('.facade-play')?.addEventListener('click', () => loadVideo(wrapper), { once: true })
+  }
+
+  function setupAllFacades() {
+    document.querySelectorAll<HTMLElement>('.youtube-facade').forEach(setupFacade)
+  }
+
+  document.addEventListener('astro:page-load', setupAllFacades)
+  document.addEventListener(CONSENT_EVENT, ((e: CustomEvent) => {
+    if (e.detail === 'accepted') {
+      document.querySelectorAll<HTMLElement>('.youtube-facade[data-embed-url]').forEach(loadVideo)
+    }
+  }) as EventListener)
+</script>
 
 <style>
   .video-wrapper {
@@ -51,5 +92,44 @@ const embedUrl = getYoutubeEmbedUrl(url)
     border: 0;
     width: 100%;
     height: 100%;
+  }
+
+  .facade-play {
+    display: block;
+    position: absolute;
+    inset: 0;
+    cursor: pointer;
+    border: 0;
+    background: none;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .facade-play img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .play-icon {
+    display: flex;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    justify-content: center;
+    align-items: center;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.7);
+    width: 4rem;
+    height: 4rem;
+    color: #fff;
+    font-size: 1.5rem;
+  }
+
+  .facade-play:hover .play-icon,
+  .facade-play:focus-visible .play-icon {
+    background: rgba(230, 20, 20, 0.85);
   }
 </style>

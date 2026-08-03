@@ -1,0 +1,68 @@
+---
+import { Button, Link } from 'accessible-astro-components'
+---
+
+<div id="cookie-banner" role="region" aria-label="Cookie consent" hidden>
+  <p>
+    We embed YouTube videos on episode pages. Loading one lets YouTube set cookies. Accepting lets videos load automatically.
+    You can still play any video without accepting, which counts as consent for that video only. See our
+    <Link href="/privacy-policy">Privacy Policy</Link>.
+  </p>
+  <div class="cookie-banner-actions">
+    <Button id="cookie-reject" variant="outlined" type="secondary" size="sm">Reject</Button>
+    <Button id="cookie-accept" variant="filled" type="primary" size="sm">Accept</Button>
+  </div>
+</div>
+
+<script>
+  import { getConsent, setConsent } from '@utils/cookieConsent'
+
+  function setupCookieBanner() {
+    const banner = document.getElementById('cookie-banner')
+    if (!banner || banner.dataset.init === 'true') return
+    banner.dataset.init = 'true'
+
+    if (getConsent() === null) banner.hidden = false
+
+    document.getElementById('cookie-accept')?.addEventListener('click', () => {
+      setConsent('accepted')
+      banner.hidden = true
+    })
+
+    document.getElementById('cookie-reject')?.addEventListener('click', () => {
+      setConsent('rejected')
+      banner.hidden = true
+    })
+  }
+
+  document.addEventListener('astro:page-load', setupCookieBanner)
+</script>
+
+<style lang="scss">
+  #cookie-banner {
+    position: fixed;
+    z-index: 9999;
+    right: 1rem;
+    bottom: 1rem;
+    left: 1rem;
+    margin-inline: auto;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    border: 1px solid var(--border-color-subtle);
+    border-radius: 0.75rem;
+    background: var(--background-color);
+    padding: 1.25rem;
+    max-width: 40rem;
+    color: var(--foreground-color);
+
+    p {
+      margin: 0 0 1rem;
+      font-size: var(--font-size--1);
+    }
+  }
+
+  .cookie-banner-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+  }
+</style>
