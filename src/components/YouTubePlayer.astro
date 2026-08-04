@@ -18,7 +18,12 @@ const embedUrl = videoId ? `https://www.youtube-nocookie.com/embed/${videoId}?au
 
 {
   embedUrl && thumbnail ? (
-    <div class="video-wrapper youtube-facade" data-embed-url={embedUrl} data-title={title}>
+    <div
+      class="youtube-facade"
+      style="position:relative;aspect-ratio:16/9;overflow:hidden;border-radius:var(--radius-large);background-color:#000;"
+      data-embed-url={embedUrl}
+      data-title={title}
+    >
       <button type="button" class="facade-play" aria-label={`Play: ${title}`}>
         <img src={thumbnail} alt="" loading="lazy" />
         <span class="play-icon" aria-hidden="true">▶</span>
@@ -79,24 +84,6 @@ const embedUrl = videoId ? `https://www.youtube-nocookie.com/embed/${videoId}?au
 </script>
 
 <style>
-  .video-wrapper {
-    position: relative;
-    border-radius: var(--radius-large);
-    background-color: #000;
-    padding-bottom: 56.25%;
-    height: 0;
-    overflow: hidden;
-  }
-
-  .video-wrapper iframe {
-    position: absolute;
-    top: 0;
-    left: 0;
-    border: 0;
-    width: 100%;
-    height: 100%;
-  }
-
   .facade-play {
     display: block;
     position: absolute;
