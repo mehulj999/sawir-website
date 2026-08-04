@@ -48,6 +48,9 @@ const embedUrl = videoId ? `https://www.youtube-nocookie.com/embed/${videoId}?au
     iframe.allow =
       'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'
     iframe.allowFullscreen = true
+    // Scoped CSS (.video-wrapper iframe) can't reach elements created here — Astro's
+    // style scoping only stamps elements written in the template, not ones from a script.
+    iframe.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;border:0;'
     wrapper.appendChild(iframe)
   }
 
