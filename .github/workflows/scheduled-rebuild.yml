@@ -6,7 +6,7 @@ name: Scheduled Netlify Rebuild
 
 on:
   schedule:
-    - cron: '0 1 * * 1' # Mondays, 01:00 UTC
+    - cron: '0 7 * * 1' # Mondays, 07:00 UTC
   workflow_dispatch: # allow manual trigger from GitHub Actions UI
 
 jobs:
